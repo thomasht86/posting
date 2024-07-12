@@ -21,6 +21,10 @@ from textual.widgets import (
     Input,
     Label,
     TextArea,
+    TabbedContent,
+    TabPane,
+    Placeholder,
+    Markdown,
 )
 from textual.widgets._tabbed_content import ContentTab
 from posting.collection import (
@@ -39,6 +43,7 @@ from posting.types import PostingLayout
 from posting.user_host import get_user_host_string
 from posting.variables import SubstitutionError, get_variables
 from posting.version import VERSION
+from posting.vespa import VespaPage, DocSearchView
 from posting.widgets.collection.browser import (
     CollectionBrowser,
     CollectionTree,
@@ -79,17 +84,54 @@ class AppHeader(Horizontal):
             dock: right;
             color: $text-muted;
         }
+
+        & > #auth-status {
+            dock: right;
+        }
+        & .not-authenticated {
+                color: $warning;
+            }
+        & .authenticated {
+            color: $success;
+        }
     }
     """
+
+    COMPONENT_CLASSES = {
+        "authenticated",
+        "not-authenticated"
+    }
+
+    auth_status: Reactive[bool] = reactive(False, init=False, recompose=True)
 
     def compose(self) -> ComposeResult:
         settings = SETTINGS.get().heading
         yield Label(f"Posting [dim]{VERSION}[/]", id="app-title")
-        if settings.show_host:
-            yield Label(get_user_host_string(), id="app-user-host")
+        #if settings.show_host:
+        #    yield Label(get_user_host_string(), id="app-user-host")
+        #self.set_class(not settings.visible, "hidden")
+        marker = self._get_auth_marker()
+        yield Label(marker, id="auth-status")
+    
+    def _get_auth_marker(self) -> Text:
+        if self.auth_status:
+            style = self.get_component_rich_style("authenticated")
+            return Text("Authenticated ✓", style=style)
+        else:
+            style = self.get_component_rich_style("not-authenticated")
+            return Text("Not authenticated ■", style=style)
+    
+    def update_status_classes(self) -> None:
+        self.set_class(self.auth_status, "authenticated", update=True)
+        self.query_one("#auth-status").set_class(not self.auth_status, "not-authenticated", update=True)
 
-        self.set_class(not settings.visible, "hidden")
+    def watch_auth_status(self, old_value: bool, new_value: bool) -> None:
+        self.query_one("#auth-status").set_class(new_value, "authenticated", update=True)
+        self.query_one("#auth-status").set_class(not new_value, "not-authenticated", update=True)
+        new_text = self._get_auth_marker()
+        self.query_one("#auth-status").update(new_text)
 
+        
 
 class AppBody(Vertical):
     """The body of the app."""
@@ -99,6 +141,7 @@ class AppBody(Vertical):
         padding: 0 2;
     }
     """
+
 
 
 class MainScreen(Screen[None]):
@@ -127,6 +170,7 @@ class MainScreen(Screen[None]):
         None, init=False
     )
     """The currently maximized section of the main screen."""
+    auth_status: Reactive[bool] = reactive(False, init=False)
 
     def __init__(
         self,
@@ -142,6 +186,11 @@ class MainScreen(Screen[None]):
         self.settings = SETTINGS.get()
         load_variables(self.environment_files, self.settings.use_host_environment)
 
+    @on(VespaPage.AuthenticatedMessage)
+    def on_authenticated_message(self, event: VespaPage.AuthenticatedMessage) -> None:
+        self.auth_status = not self.auth_status
+        self.app_header.auth_status = self.auth_status
+
     def on_mount(self) -> None:
         self.layout = self._initial_layout
 
@@ -149,9 +198,15 @@ class MainScreen(Screen[None]):
         yield AppHeader()
         yield UrlBar()
         with AppBody():
-            yield CollectionBrowser(collection=self.collection)
-            yield RequestEditor()
-            yield ResponseArea()
+            with TabbedContent(initial="vespa-pane"):
+                with TabPane("Posting", id="posting-pane"):
+                    yield CollectionBrowser(collection=self.collection)
+                    yield RequestEditor()
+                    yield ResponseArea()
+                with TabPane("Vespa", id="vespa-pane"):
+                    yield VespaPage(id="vespa-page")
+                with TabPane("Docsearch", id="doc-search"):
+                    yield DocSearchView(id="doc-search-view")
         yield Footer()
 
     async def send_request(self) -> None:
@@ -496,6 +551,10 @@ class MainScreen(Screen[None]):
     @property
     def app_body(self) -> AppBody:
         return self.query_one(AppBody)
+    
+    @property
+    def app_header(self) -> AppHeader:
+        return self.query_one(AppHeader)
 
     @property
     def request_options(self) -> RequestOptions:
