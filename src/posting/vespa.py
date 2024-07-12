@@ -3,7 +3,7 @@ from textual.widgets import Label, Markdown, Button
 from textual.app import ComposeResult, on  
 from textual.message import Message
 from posting.widgets.request.url_bar import SendRequestButton
-from textual.widgets import Input, Markdown, Placeholder, Label, ContentSwitcher, Button
+from textual.widgets import Input, Markdown, Placeholder, Label, ContentSwitcher, Button, Collapsible
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll, Horizontal, Vertical, Center
 from textual.binding import Binding
@@ -20,6 +20,7 @@ import sys
 import subprocess
 import shlex
 import select
+from typing import List
 
 
 
@@ -98,6 +99,21 @@ class VespaPage(Vertical):
 class ChatResponse(Message):
     response: str
 
+@dataclass
+class SearchResult():
+    title: str
+    base_uri: str
+    path: str
+    content: str
+    relevance: float
+
+    def to_markdown(self) -> str:
+        return f"{self.title}\n\n{self.content}\n\n[Read more]({self.base_uri}{self.path})"
+
+
+@dataclass
+class SearchResponse(Message):
+    results: List[SearchResult]
 
 class DocSearchView(Horizontal):
     """DocSearchView"""
@@ -110,9 +126,7 @@ class DocSearchView(Horizontal):
             dock: right;
             padding: 1;
         }
-        & Markdown {
-            max-height: 20%;
-        }
+
         & FilterButton {
             
             &.disabled {
@@ -169,7 +183,8 @@ class DocSearchView(Horizontal):
                 for filter_name, filter_query in self.FILTERS.items():
                     yield FilterButton(filter_name, id=filter_name, variant="success", classes="filter-button")
                     yield Label(" ")
-            yield Placeholder("Results area")
+            with VerticalScroll(id="all-search-results") as results_area:
+                yield Label("Empty for now", id="empty-results")    
         with VerticalScroll() as chat_area:
             chat_area.styles.width = "1fr"
             chat_area.styles.height = "auto"
@@ -190,16 +205,17 @@ class DocSearchView(Horizontal):
     def _on_mount(self):
         self.query_one(selector="#search-input").focus()
         # Add binding to self.app
-        BINDINGS = [Binding("ctrl+enter", "send_request", "Search"),]
-        for binding in BINDINGS:
-            self.app.BINDINGS.append(binding)
+        # BINDINGS = [Binding("ctrl+enter", "send_request", "Search"),]
+        # for binding in BINDINGS:
+        #     self.app.BINDINGS.append(binding)
     
-    def _on_unmount(self):
-        for binding in BINDINGS:
-            self.app.BINDINGS.remove(binding)
-
-    async def send_via_worker(self) -> None:
-        await self.send_request()
+    @work(exclusive=True)
+    async def send_chat_via_worker(self) -> None:
+        await self.send_chat_request()
+    
+    @work(exclusive=True)
+    async def send_search_via_worker(self) -> None:
+        await self.send_search_request()
     
     @on(FilterButton.Pressed, selector=".filter-button")
     def handle_filter_button(self, event) -> None:
@@ -212,13 +228,25 @@ class DocSearchView(Horizontal):
     def handle_submit_via_event(self) -> None:
         """Send the request."""
         self.query_one(ContentSwitcher).current = "after-consent"
-        self.send_via_worker()
+        self.send_chat_via_worker()
+    
+    @on(Button.Pressed, selector="#search-button")
+    def handle_search_via_event(self) -> None:
+        """Send the request."""
+        self.send_search_via_worker()
 
-    async def send_request(self) -> None:
+    async def send_chat_request(self) -> None:
         "Temporarily simulate a chat request"
         # Sleep for 1 sec after button is pushed, then update the chat area
         await asyncio.sleep(1)
         self.post_message(ChatResponse(response="This is blblblblblb response"))
+    
+    async def send_search_request(self) -> None:
+        "Temporarily simulate a chat request"
+        # Sleep for 1 sec after button is pushed, then update the chat area
+        await asyncio.sleep(0.2)
+        self.post_message(self.sample_response)
+        self.query_one(selector="#empty-results").update("Pressed")
 
     @on(message_type=ChatResponse)
     def on_response_received(self, event: ChatResponse) -> None:
@@ -226,3 +254,31 @@ class DocSearchView(Horizontal):
             markdown=event.response
         )
         print("Sending request")
+    
+    @on(message_type=SearchResponse)
+    def on_search_response_received(self, event: SearchResponse) -> None:
+        mount_area = self.query_one(selector="#all-search-results", expect_type=VerticalScroll)
+        for result in event.results:
+            md_result = result.to_markdown()
+            mount_area.mount(Markdown(md_result))
+    
+    @property
+    def sample_response(self) -> SearchResponse:
+        return SearchResponse(
+            results=[
+                SearchResult(
+                    title="Sample title",
+                    base_uri="https://vespa.ai",
+                    path="/docs",
+                    content="Sample content",
+                    relevance=0.9,
+                ),
+                SearchResult(
+                    title="Sample title 2",
+                    base_uri="https://vespa.ai",
+                    path="/docs",
+                    content="Sample content 2",
+                    relevance=0.8,
+                ),
+            ]
+        )
