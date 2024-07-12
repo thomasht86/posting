@@ -9,8 +9,11 @@ from textual.containers import VerticalScroll, Horizontal, Vertical, Center
 from textual.binding import Binding
 from textual import work, on
 from textual.message import Message
+from pydantic import BaseModel, ConfigDict
+from pydantic.dataclasses import dataclass as pydantic_dataclass
 from posting.widgets.vespa.buttons import SearchButton, FilterButton
 from dataclasses import dataclass
+import httpx
 import asyncio
 from dataclasses import dataclass
 from subprocess import run
@@ -99,7 +102,7 @@ class VespaPage(Vertical):
 class ChatResponse(Message):
     response: str
 
-@dataclass
+@pydantic_dataclass(config=dict(extra="allow"))
 class SearchResult():
     title: str
     base_uri: str
@@ -109,7 +112,6 @@ class SearchResult():
 
     def to_markdown(self) -> str:
         return f"{self.title}\n\n{self.content}\n\n[Read more]({self.base_uri}{self.path})"
-
 
 @dataclass
 class SearchResponse(Message):
@@ -209,13 +211,17 @@ class DocSearchView(Horizontal):
         # for binding in BINDINGS:
         #     self.app.BINDINGS.append(binding)
     
+    def get_filter_string(self) -> str:
+        return " ".join([filter_name for filter_name, is_active in self.BUTTON_STATES.items() if is_active])
+
     @work(exclusive=True)
     async def send_chat_via_worker(self) -> None:
         await self.send_chat_request()
     
     @work(exclusive=True)
     async def send_search_via_worker(self) -> None:
-        await self.send_search_request()
+        search_query = self.query_one(selector="#search-input").value
+        await self.send_search_request(query=search_query, filter_string=self.get_filter_string())
     
     @on(FilterButton.Pressed, selector=".filter-button")
     def handle_filter_button(self, event) -> None:
@@ -241,12 +247,61 @@ class DocSearchView(Horizontal):
         await asyncio.sleep(1)
         self.post_message(ChatResponse(response="This is blblblblblb response"))
     
-    async def send_search_request(self) -> None:
+    async def send_search_request(self, query: str, filter_string: str) -> None:
         "Temporarily simulate a chat request"
-        # Sleep for 1 sec after button is pushed, then update the chat area
-        await asyncio.sleep(0.2)
-        self.post_message(self.sample_response)
-        self.query_one(selector="#empty-results").update("Pressed")
+
+        headers = {
+            'User-Agent': 'Vespa TUI',
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'application/json',
+            'Referer': 'https://search.vespa.ai/',
+            'Origin': 'https://search.vespa.ai',
+            'Connection': 'keep-alive',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-site',
+            'Priority': 'u=4',
+        }
+
+        #query = 'hello'
+        #filters = '+namespace:open-p +namespace:cloud-p +namespace:vespaapps-p +namespace:blog-p +namespace:pyvespa-p'
+        query_profile = 'llmsearch'
+
+        params = {
+            'query': query,
+            'filters': filter_string,
+            'queryProfile': query_profile,
+        }
+
+        url = 'https://api.search.vespa.ai/search/'
+
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(url, headers=headers, params=params)
+                response.raise_for_status()
+                resp = response.json()
+                children = resp.get('root', {}).get('children', []) 
+                results = []
+                for child in children:
+                    fields = child.get('fields', {})
+                    result = SearchResult(
+                        title=fields.get('title', ''),
+                        base_uri=fields.get('base_uri', ''),
+                        path=fields.get('path', ''),
+                        content=fields.get('content', ''),
+                        relevance=child.get('relevance', 0.0)
+                    )
+                    results.append(result)
+                for result in results:
+                    search_response = SearchResponse(results=results)
+            except httpx.HTTPStatusError as e:
+                search_response = SearchResponse(results=[])
+                print(f"HTTP status error: {e}")
+                raise e
+                exit()
+        self.post_message(search_response)
+        self.query_one(selector="#empty-results").update(f"finished")
 
     @on(message_type=ChatResponse)
     def on_response_received(self, event: ChatResponse) -> None:
