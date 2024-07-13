@@ -1,0 +1,36 @@
+name: stream
+description: Stream abstract from vespa
+method: GET
+url: https://api.search.vespa.ai/stream/
+params:
+- name: query
+  value: HELLO
+- name: filters
+  value: '+namespace:open-p +namespace:cloud-p +namespace:vespaapps-p +namespace:blog-p +namespace:pyvespa-p'
+- name: queryProfile
+  value: llmsearch
+headers:
+- name: User-Agent
+  value: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:127.0) Gecko/20100101 Firefox/127.0
+- name: Accept
+  value: "*/*"
+- name: Accept-Language
+  value: en-US,en;q=0.5
+- name: Accept-Encoding
+  value: text/event-stream
+- name: Referer
+  value: https://search.vespa.ai/
+- name: Origin
+  value: https://search.vespa.ai
+- name: Connection
+  value: keep-alive
+- name: Sec-Fetch-Dest
+  value: empty
+- name: Sec-Fetch-Mode
+  value: cors
+- name: Sec-Fetch-Site
+  value: same-site
+- name: Priority
+  value: u=1
+- name: TE
+  value: trailers
