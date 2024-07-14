@@ -200,7 +200,6 @@ class DocSearchView(Horizontal):
         self.add_class("section")
         self.styles.border_title_align = "center"
         with VerticalScroll() as search_column:
-            search_column.styles.background = "background-lighten-1"
             search_column.styles.width = "2fr"
             with Horizontal() as search_bar:
                 search_bar.styles.height = 1
