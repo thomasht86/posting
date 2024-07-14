@@ -1,47 +1,30 @@
-import httpx
-import asyncio
+# Sample textual app that renders markdown widget with url link
+from textual.widgets import Markdown
+from textual.app import App, ComposeResult
 
-async def fetch():
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:127.0) Gecko/20100101 Firefox/127.0',
-        'Accept': 'text/event-stream',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br, zstd',
-        'Referer': 'https://search.vespa.ai/',
-        'Origin': 'https://search.vespa.ai',
-        'Connection': 'keep-alive',
-        'Sec-Fetch-Dest': 'empty',
-        'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Site': 'same-site',
-        'Priority': 'u=4',
-        'Pragma': 'no-cache',
-        'Cache-Control': 'no-cache'
-    }
+MARKDOWN = """
+# This is an h1
 
-    query = 'hello'
-    filters = '+namespace:open-p +namespace:cloud-p +namespace:vespaapps-p +namespace:blog-p +namespace:pyvespa-p'
-    query_profile = 'llmsearch'
+Rich can do a pretty *decent* job of rendering markdown.
 
-    params = {
-        'query': query,
-        'filters': filters,
-        'queryProfile': query_profile,
-    }
+1. This is a list item
+2. This is another list item
 
-    url = 'https://api.search.vespa.ai/stream/'
+[Google](https://www.google.com)
+"""
 
-    async with httpx.AsyncClient() as client:
-        async with client.stream("GET", url, headers=headers, params=params) as response:
-            response.raise_for_status()
-            message = ""
-            async for line in response.aiter_lines():
-                if line.startswith("data: "):
-                    data = line[len("data: "):]
-                    message += data
-                    print(data, end='')  # Post each update as a message part
-                elif line.startswith("event: end"):
-                    print("\nEnd of message.")  # Final message post
-                    break
+class HyperlinkApp(App):
 
-# To run the async function, use the following code
-asyncio.run(fetch())
+    def compose(self) -> ComposeResult:
+        yield Markdown(MARKDOWN)
+
+# if __name__ == "__main__":
+#     app = HyperlinkApp()
+#     app.run()
+
+from rich.console import Console
+from rich.markdown import Markdown
+
+console = Console()
+md = Markdown(MARKDOWN)
+console.print(md)

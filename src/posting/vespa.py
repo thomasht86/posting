@@ -16,7 +16,7 @@ import subprocess
 import shlex
 import select
 from typing import List
-
+import webbrowser
 
 class VespaPage(Vertical):
     """The Vespa page."""
@@ -117,13 +117,33 @@ class SearchResult:
     source: str
 
     def to_markdown(self) -> str:
-        return f"### [{self.number}] **{self.title}**\n___\n{self.content}\n\n[Read more]({self.base_uri}{self.path})\n___"
+        return f"### [[{self.number}] {self.title}]({self.base_uri}{self.path})\n{self.content}\n\n[Read more]({self.base_uri}{self.path})\n___"
 
 
 @dataclass
 class SearchResponse(Message):
     results: List[SearchResult]
 
+# Not working yet
+# class SearchResultWidget(Vertical):
+
+#     DEFAULT_CSS = """
+#     SearchResultWidget {
+#         border: solid $background-lighten-3;
+        
+#         & Button {
+#             width: 80%;
+#         }
+#     }
+#     """
+
+#     def __init__(self, result: SearchResult, **kwargs):
+#         super().__init__(**kwargs)
+#         self.result = result
+
+#     def compose(self) -> ComposeResult:
+#         yield Markdown(self.result)
+#         yield Button("Read more", id="read-more")
 
 class DocSearchView(Horizontal):
     """DocSearchView"""
@@ -194,6 +214,7 @@ class DocSearchView(Horizontal):
 
         def watch_text(self) -> None:
             self.update(markdown=self.text)
+
 
     def compose(self) -> ComposeResult:
         self.border_title = "Search vespa.ai documentation"
@@ -274,6 +295,11 @@ class DocSearchView(Horizontal):
         await self.send_search_request(
             query=self.search_query, filter_string=self.get_filter_string()
         )
+
+    @on(Markdown.LinkClicked)
+    def handle_link_clicked(self, event: Markdown.LinkClicked) -> None:
+        # Open in a new tab, if possible, else in the default browser
+        webbrowser.open_new_tab(event.href)
 
     @on(FilterButton.Pressed, selector=".filter-button")
     def handle_filter_button(self, event) -> None:
@@ -384,7 +410,7 @@ class DocSearchView(Horizontal):
         mount_area = self.query_one(
             selector="#all-search-results", expect_type=VerticalScroll
         )
-        for result in event.results:
+        for result_no, result in enumerate(event.results, start=1):
             md_result = result.to_markdown()
             mount_area.mount(Markdown(md_result))
 
@@ -392,27 +418,6 @@ class DocSearchView(Horizontal):
     def reset_search(self, event: ResetSearch) -> None:
         self.query_one(selector="#all-search-results").remove_children()
         # self.query_one(selector="#empty-results").update("Empty for now")
-
-    @property
-    def sample_response(self) -> SearchResponse:
-        return SearchResponse(
-            results=[
-                SearchResult(
-                    title="Sample title",
-                    base_uri="https://vespa.ai",
-                    path="/docs",
-                    content="Sample content",
-                    relevance=0.9,
-                ),
-                SearchResult(
-                    title="Sample title 2",
-                    base_uri="https://vespa.ai",
-                    path="/docs",
-                    content="Sample content 2",
-                    relevance=0.8,
-                ),
-            ]
-        )
 
     @property
     def search_request_headers(self) -> dict[str, str]:
@@ -446,6 +451,7 @@ class DocSearchView(Horizontal):
             "Priority": "u=1",
             "TE": "trailers",
         }
+
 
     @property
     def query_profile(self) -> str:
