@@ -124,26 +124,26 @@ class SearchResult:
 class SearchResponse(Message):
     results: List[SearchResult]
 
-# Not working yet
-# class SearchResultWidget(Vertical):
+# Not in use yet
+class SearchResultWidget(Vertical):
 
-#     DEFAULT_CSS = """
-#     SearchResultWidget {
-#         border: solid $background-lighten-3;
+    DEFAULT_CSS = """
+    SearchResultWidget {
+        border: solid $background-lighten-3;
         
-#         & Button {
-#             width: 80%;
-#         }
-#     }
-#     """
+        & Button {
+            width: 80%;
+        }
+    }
+    """
 
-#     def __init__(self, result: SearchResult, **kwargs):
-#         super().__init__(**kwargs)
-#         self.result = result
+    def __init__(self, result: SearchResult, **kwargs):
+        super().__init__(**kwargs)
+        self.result = result
 
-#     def compose(self) -> ComposeResult:
-#         yield Markdown(self.result)
-#         yield Button("Read more", id="read-more")
+    def compose(self) -> ComposeResult:
+        yield Markdown(self.result)
+        yield Button("Read more", id="read-more")
 
 class DocSearchView(Horizontal):
     """DocSearchView"""
