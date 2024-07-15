@@ -2,7 +2,7 @@ from textual.containers import Vertical
 from textual.widgets import Label, Markdown, Button
 from textual.app import ComposeResult, on
 from textual.message import Message
-from textual.widgets import Input, ContentSwitcher
+from textual.widgets import Input, ContentSwitcher, DataTable, TabbedContent, TabPane
 from textual.containers import VerticalScroll, Horizontal, Center
 from textual import work
 from textual.reactive import reactive
@@ -18,6 +18,39 @@ import select
 from typing import List
 import webbrowser
 
+ROWS = [
+    ("Application", "URL endpoint", "Auth type", "Cert status", "Status"),
+    (
+        "colbert-ai",
+        "https://b29dd9de.d95f671d.z.vespa-app.cloud/",
+        "mTLS",
+        "Not Found",
+        "No cert",
+    ),
+    (
+        "semantic-search",
+        "https://b29ddgde.d95f434d.z.vespa-app.cloud/",
+        "mTLS",
+        "Not Found",
+        "No cert",
+    ),
+    (
+        "pdf-search",
+        "https://b29dd9de.d95f67434.z.vespa-app.cloud/",
+        "token",
+        "OK",
+        "Ready",
+    ),
+]
+
+
+class ApplicationTable(DataTable):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs, cursor_type="row", id="app_table")
+        self.add_columns(*ROWS[0])
+        self.add_rows(ROWS[1:])
+
+
 class VespaPage(Vertical):
     """The Vespa page."""
 
@@ -26,9 +59,21 @@ class VespaPage(Vertical):
         authenticated: bool = True
 
     def compose(self) -> ComposeResult:
-        yield Label("Vespa")
-        yield Button("Authenticate", id="auth_button", variant="primary")
-        yield Markdown("Output:", id="output")
+        # yield Label("Vespa")
+        # yield Button("Authenticate", id="auth_button", variant="primary")
+        with TabbedContent(initial="dev"):
+            with TabPane("Dev", id="dev"):
+                yield Markdown("Dev:", id="dev")
+                yield ApplicationTable()
+            with TabPane("Prod", id="prod"):
+                yield Markdown("Prod:", id="prod")
+        # yield ApplicationTable()
+        # yield Markdown("Output:", id="output")
+
+    def _on_mount(self) -> None:
+        table = self.query_one(DataTable)
+        # table.add_columns(*ROWS[0])
+        # table.add_rows(ROWS[1:])
 
     @on(Button.Pressed, "#auth_button")
     def run_vespa_auth_login(self, event):
@@ -124,9 +169,9 @@ class SearchResult:
 class SearchResponse(Message):
     results: List[SearchResult]
 
+
 # Not in use yet
 class SearchResultWidget(Vertical):
-
     DEFAULT_CSS = """
     SearchResultWidget {
         border: solid $background-lighten-3;
@@ -144,6 +189,7 @@ class SearchResultWidget(Vertical):
     def compose(self) -> ComposeResult:
         yield Markdown(self.result)
         yield Button("Read more", id="read-more")
+
 
 class DocSearchView(Horizontal):
     """DocSearchView"""
@@ -214,7 +260,6 @@ class DocSearchView(Horizontal):
 
         def watch_text(self) -> None:
             self.update(markdown=self.text)
-
 
     def compose(self) -> ComposeResult:
         self.border_title = "Search vespa.ai documentation"
@@ -451,7 +496,6 @@ class DocSearchView(Horizontal):
             "Priority": "u=1",
             "TE": "trailers",
         }
-
 
     @property
     def query_profile(self) -> str:
