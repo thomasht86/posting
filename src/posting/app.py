@@ -37,6 +37,7 @@ from posting.collection import (
 
 from posting.commands import PostingProvider
 from posting.config import SETTINGS, Settings
+from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.types import PostingLayout
@@ -145,6 +146,7 @@ class AppBody(Vertical):
 
 
 class MainScreen(Screen[None]):
+    AUTO_FOCUS = "UrlInput"
     BINDINGS = [
         Binding("ctrl+j", "send_request", "Send"),
         Binding("ctrl+t", "change_method", "Method"),
@@ -159,8 +161,6 @@ class MainScreen(Screen[None]):
             show=False,
         ),
     ]
-
-    AUTO_FOCUS = "UrlInput"
 
     selected_method: Reactive[HttpRequestMethod] = reactive("GET", init=False)
     """The currently selected method of the request."""
@@ -609,14 +609,13 @@ class Posting(PostingApp):
             "ctrl+p",
             "command_palette",
             description="Commands",
-            show=True,
         ),
         Binding(
             "ctrl+o",
             "toggle_jump_mode",
             description="Jump",
-            show=True,
         ),
+        Binding("f1,ctrl+question_mark", "help", "Help"),
     ]
 
     themes: dict[str, ColorSystem] = {
@@ -861,3 +860,13 @@ class Posting(PostingApp):
 
         self.clear_notifications()
         await self.push_screen(JumpOverlay(self.jumper), callback=handle_jump_target)
+
+    async def action_help(self) -> None:
+        focused = self.focused
+
+        def reset_focus(_) -> None:
+            if focused:
+                self.screen.set_focus(focused)
+
+        self.set_focus(None)
+        await self.push_screen(HelpScreen(widget=focused), callback=reset_focus)
