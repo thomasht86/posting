@@ -2,12 +2,11 @@ from textual.containers import Vertical
 from textual.widgets import Label, Markdown, Button
 from textual.app import ComposeResult, on
 from textual.message import Message
-from textual.widgets import Input, ContentSwitcher, DataTable, TabbedContent, TabPane
+from textual.widgets import Input, ContentSwitcher, DataTable
 from textual.containers import VerticalScroll, Horizontal, Center, Grid
 from textual import work
-from textual.reactive import reactive
+from textual.reactive import reactive, Reactive
 from textual.screen import ModalScreen
-from textual.widgets import Button, Footer, Header, Label
 from rich.text import Text
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 from posting.widgets.vespa.buttons import SearchButton, FilterButton
@@ -22,7 +21,15 @@ from typing import List
 import webbrowser
 
 
-COLUMNS = ("Application", "Environment","URL endpoint", "Document count", "Auth type", "Cert status", "Status")
+COLUMNS = (
+    "Application",
+    "Environment",
+    "URL endpoint",
+    "Document count",
+    "Auth type",
+    "Cert status",
+    "Status",
+)
 ROWS = [
     (
         "colbert-ai",
@@ -52,6 +59,7 @@ ROWS = [
         "Ready",
     ),
 ]
+
 
 class AddTokenScreen(ModalScreen):
     """Screen with a dialog to quit."""
@@ -106,9 +114,9 @@ class AddTokenScreen(ModalScreen):
             self.app.pop_screen()
         else:
             self.app.pop_screen()
-        
-class ApplicationTable(DataTable):
 
+
+class ApplicationTable(DataTable):
     DEFAULT_CSS = """
     ApplicationTable {
         margin: 1
@@ -119,12 +127,15 @@ class ApplicationTable(DataTable):
     def __init__(self, **kwargs):
         super().__init__(**kwargs, cursor_type="row", id="app_table")
         self.column_keys = self.add_columns(*COLUMNS)
-        self.col_label_to_key = {col: key for key, col in zip(self.column_keys, COLUMNS)}
-        #self.add_rows(ROWS)
+        self.col_label_to_key = {
+            col: key for key, col in zip(self.column_keys, COLUMNS)
+        }
+        # self.add_rows(ROWS)
         for row in ROWS:
             # Adding styled and justified `Text` objects instead of plain strings.
             styled_row = [
-                Text(str(cell), style=self.get_style_for_cell(cell_no, cell)) for cell_no, cell in enumerate(row)
+                Text(str(cell), style=self.get_style_for_cell(cell_no, cell))
+                for cell_no, cell in enumerate(row)
             ]
             self.add_row(*styled_row)
         self.sort(self.col_label_to_key["Status"], key=lambda x: str(x).lower())
@@ -133,8 +144,11 @@ class ApplicationTable(DataTable):
         if cell_no == 6:
             return "green" if cell == "Ready" else "yellow"
         return ""
+
+
 class VespaPage(Vertical):
     """The Vespa page."""
+
     DEFAULT_CSS = """
     VespaPage {
         & #auth-row {
@@ -160,7 +174,7 @@ class VespaPage(Vertical):
             margin: 1;
         }
     }
-    """ 
+    """
 
     @dataclass
     class AuthenticatedMessage(Message):
@@ -170,17 +184,17 @@ class VespaPage(Vertical):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
             self.text = "Generate Cert"
-    
+
     class GenerateCollectionButton(Button):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
             self.text = "Generate Collection"
-    
+
     class AddTokenButton(Button):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
             self.text = "Add Token"
-    
+
     class AddEnvButton(Button):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
@@ -197,12 +211,21 @@ class VespaPage(Vertical):
         yield Label("Applications:")
         yield ApplicationTable()
         with Horizontal(id="button-row"):
-            yield self.GenerateCollectionButton(label="Generate collection", id="generate_button", variant="success")
-            yield self.GenerateCertButton(label="Generate Cert", id="cert_button", variant="success")
-            yield self.AddTokenButton(label="Add Token", id="token_button", variant="success")
-            yield self.AddEnvButton(label="Add to environment", id="env_button", variant="success")
+            yield self.GenerateCollectionButton(
+                label="Generate collection", id="generate_button", variant="success"
+            )
+            yield self.GenerateCertButton(
+                label="Generate Cert", id="cert_button", variant="success"
+            )
+            yield self.AddTokenButton(
+                label="Add Token", id="token_button", variant="success"
+            )
+            yield self.AddEnvButton(
+                label="Add to environment", id="env_button", variant="success"
+            )
         # yield ApplicationTable()
         # yield Markdown("Output:", id="output")
+
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "token_button":
             self.app.push_screen(AddTokenScreen())
@@ -384,10 +407,8 @@ class DocSearchView(Horizontal):
     has_searched: bool = False
 
     class AbstractMarkdown(Markdown):
-        def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-            self.init_text = ""
-            self.text = reactive(self.init_text)
+        init_text: str = "Abstract will be shown here"
+        text: Reactive = reactive(init_text)
 
         def reset_text(self) -> None:
             self.text = self.init_text
