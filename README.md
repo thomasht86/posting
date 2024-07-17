@@ -80,34 +80,6 @@ and <kbd>j</kbd>/<kbd>k</kbd>/<kbd>up</kbd>/<kbd>down</kbd> will move around wit
 
 Where it makes sense, <kbd>up</kbd> and <kbd>down</kbd> will move between widgets.
 
-### Keyboard shortcuts
-
-Important keyboard shortcuts are displayed at the bottom of the screen.
-Some additional keyboard shortcuts are shown in the table below.
-
-<details>
-  <summary>Click here to see keybinds</summary>
-  
-| Action | Shortcut | Context |
-|--------|----------|---------|
-| Focus the URL bar | <kbd>ctrl</kbd>+<kbd>l</kbd> | Global |
-| Toggle collection browser sidebar | <kbd>ctrl</kbd>+<kbd>h</kbd> | Global |
-| Expand request section | <kbd>ctrl</kbd>+<kbd>m</kbd> | When request section is focused |
-| Expand response section | <kbd>ctrl</kbd>+<kbd>m</kbd> | When response section is focused |
-| Next directory | <kbd>shift</kbd>+<kbd>j</kbd> | When collection browser is focused |
-| Previous directory | <kbd>shift</kbd>+<kbd>k</kbd> | When collection browser is focused |
-| Undo in request body | <kbd>ctrl</kbd>+<kbd>z</kbd> | When request body text area is focused |
-| Redo in request body | <kbd>ctrl</kbd>+<kbd>y</kbd> | When request body text area is focused |
-| Copy selection to clipboard | <kbd>y</kbd> or <kbd>c</kbd> | When response body text area is focused |
-| Open in pager | <kbd>f3</kbd> | When a text area is focused |
-| Open in external editor | <kbd>f4</kbd> | When a text area is focused |
-| Show contextual help | <kbd>f1</kbd> or <kbd>ctrl</kbd>+<kbd>?</kbd> (or <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>/</kbd>) | When a widget is focused |
-
-</details>
-
-> [!TIP]
-> Many parts of the UI support Vim keys for navigation.
-
 ### Contextual help
 
 Many widgets have additional bindings beyond those displayed in the footer. You can view the full list of keybindings for the currently
@@ -228,9 +200,10 @@ For example, to set the theme to `galaxy`, you can set the environment variable 
 
 ### dotenv (`.env`) files
 
-Posting also supports `.env` (dotenv) files, which are useful if you want to keep your configuration in a file rather than in your shell's environment variables.
+Posting also supports `.env` (dotenv) files, which are useful if you want to swap out environment variable values depending on the environment you're working in (for example, "dev" vs "prod").
 
-You can tell Posting to use a `.env` file using the `--env-file` option.
+You can tell Posting to use a `.env` file using the `--env` option.
+This option can be supplied multiple times to load multiple `.env` files.
 
 Here's an example `.env` file:
 
@@ -239,6 +212,8 @@ POSTING_THEME="cobalt"
 POSTING_LAYOUT="vertical"
 POSTING_HEADING__VISIBLE="false"
 ```
+
+Dotenv files are separate from collections, although you may wish to include them inside a collection to make it easy to version and share with others.
 
 ### Available configuration options
 
@@ -252,10 +227,53 @@ POSTING_HEADING__VISIBLE="false"
 | `heading.visible` (`POSTING_HEADING__VISIBLE`) | `true`, `false` (Default: `true`) | Show/hide the app header. |
 | `heading.show_host` (`POSTING_HEADING__SHOW_HOST`) | `true`, `false` (Default: `true`) | Show/hide the hostname in the app header. |
 | `url_bar.show_value_preview` (`POSTING_URL_BAR__SHOW_VALUE_PREVIEW`) | `true`, `false` (Default: `true`) | Show/hide the variable value preview below the URL bar. |
-| `pager` (`POSTING_PAGER`) | Command to use for paging text. |
-| `pager_json` (`POSTING_PAGER_JSON`) | Command to use for paging JSON. |
-| `editor` (`POSTING_EDITOR`) | Command to use for opening files in an external editor. |
+| `pager` (`POSTING_PAGER`) | (Default: `$PAGER`) | Command to use for paging text. |
+| `pager_json` (`POSTING_PAGER_JSON`) | (Default: `$PAGER`) | Command to use for paging JSON. |
+| `editor` (`POSTING_EDITOR`) | (Default: `$EDITOR`) | Command to use for opening files in an external editor. |
+| `ssl.ca_bundle` (`POSTING_SSL__CA_BUNDLE`) | Absolute path (Default: `unset`) | Absolute path to a CA bundle file/dir. If not set, the [Certifi](https://pypi.org/project/certifi/) CA bundle will be used. |
+| `ssl.verify` (`POSTING_SSL__VERIFY`) | `true`, `false` (Default: `true`) | Verify server identity. |
+| `ssl.certificate_path` (`POSTING_SSL__CERTIFICATE_PATH`) | Absolute path (Default: `unset`) | Absolute path to a client SSL certificate file or directory. |
+| `ssl.key_file` (`POSTING_SSL__KEY_FILE`) | Absolute path (Default: `unset`) | Absolute path to a client SSL key file. |
+| `ssl.password` (`POSTING_SSL__PASSWORD`) | Password for the key file. (Default: `unset`) | Password to decrypt the key file if it's encrypted. |
+| `focus.on_startup` (`POSTING_FOCUS__ON_STARTUP`) | `"url"`, `"method", "collection"` (Default: `"url"`) | Automatically focus the URL bar, method, or collection browser when the app starts. |
+| `focus.on_response` (`POSTING_FOCUS__ON_RESPONSE`) | `"body"`, `"tabs"` (Default: `unset`)| Automatically focus the response tabs or response body text area when a response is received. |
 
+## SSL certificate configuration
+
+Posting can load custom CA bundles from a `.pem` file.
+
+The easiest way to do this is in your `config.yaml` file:
+
+```yaml
+ssl:
+  ca_bundle: 'absolute/path/to/certificate.pem'
+```
+
+### Environment-specific certificates
+
+If the required CA bundle differs per environment, you can again use the principle that all configuration can be set as environment variables which can optionally be set and loaded using `--env` and `.env` files:
+
+```bash
+# dev.env
+POSTING_SSL__CA_BUNDLE='/path/to/certificate.pem'
+```
+
+Now load the `dev.env` file when working in the `dev` environment to ensure the dev environment CA bundle is used:
+
+```bash
+posting --env dev.env
+```
+
+### Client-side certificates
+
+You can specify local certificates to use as a client-side certificate:
+
+```yaml
+ssl:
+  certificate_path: /path/to/certificate.pem
+  key_file: /path/to/key.key  # optional
+  password: '***********'  # optional password for key_file
+```
 
 ## Importing OpenAPI Specifications
 
