@@ -146,6 +146,7 @@ class AppBody(Vertical):
 
 
 class MainScreen(Screen[None]):
+    #AUTO_FOCUS = "UrlInput"
     BINDINGS = [
         Binding("ctrl+j", "send_request", "Send"),
         Binding("ctrl+t", "change_method", "Method"),
@@ -216,6 +217,7 @@ class MainScreen(Screen[None]):
                     yield CollectionBrowser(collection=self.collection)
                     yield RequestEditor()
                     yield ResponseArea()
+                # TODO: Set focus in TabPane?
                 with TabPane("Vespa", id="vespa-pane"):
                     yield VespaPage(id="vespa-page")
                 with TabPane("Docsearch", id="doc-search"):
@@ -801,6 +803,7 @@ class Posting(PostingApp):
                 "--content-tab-response-headers-pane": "s",
                 "--content-tab-response-cookies-pane": "d",
                 "--content-tab-response-trace-pane": "f",
+                "token_button": "t",
             },
             screen=self.screen,
         )

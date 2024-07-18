@@ -7,6 +7,8 @@ from textual.containers import VerticalScroll, Horizontal, Center, Grid
 from textual import work
 from textual.reactive import reactive, Reactive
 from textual.screen import ModalScreen
+from textual.widgets import Button, Footer, Header, Label
+from textual.binding import Binding
 from rich.text import Text
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 from posting.widgets.vespa.buttons import SearchButton, FilterButton
@@ -175,6 +177,14 @@ class VespaPage(Vertical):
         }
     }
     """
+    AUTO_FOCUS = "tenant_input"
+    BINDINGS = [
+        Binding(
+            "ctrl+l",
+            "ring_bell",
+            description="Ring Bell",
+        ),
+    ] 
 
     @dataclass
     class AuthenticatedMessage(Message):
@@ -211,18 +221,11 @@ class VespaPage(Vertical):
         yield Label("Applications:")
         yield ApplicationTable()
         with Horizontal(id="button-row"):
-            yield self.GenerateCollectionButton(
-                label="Generate collection", id="generate_button", variant="success"
-            )
-            yield self.GenerateCertButton(
-                label="Generate Cert", id="cert_button", variant="success"
-            )
-            yield self.AddTokenButton(
-                label="Add Token", id="token_button", variant="success"
-            )
-            yield self.AddEnvButton(
-                label="Add to environment", id="env_button", variant="success"
-            )
+            yield self.GenerateCollectionButton(label="Generate collection", id="generate_button", variant="success")
+            yield self.GenerateCertButton(label="Generate Cert", id="cert_button", variant="success")
+            yield self.AddTokenButton(label="Add Token", id="token_button", variant="success")
+            yield self.AddEnvButton(label="Add to environment", id="env_button", variant="success")
+            
         # yield ApplicationTable()
         # yield Markdown("Output:", id="output")
 
@@ -232,8 +235,12 @@ class VespaPage(Vertical):
 
     def _on_mount(self) -> None:
         table = self.query_one(DataTable)
+        # self.focus("tenant_input")
         # table.add_columns(*ROWS[0])
         # table.add_rows(ROWS[1:])
+
+    def action_ring_bell(self) -> None:
+        self.app.bell()
 
     @on(Button.Pressed, "#auth_button")
     def run_vespa_auth_login(self, event):
@@ -402,7 +409,13 @@ class DocSearchView(Horizontal):
     }
     # Initialize the button states to False
     BUTTON_STATES = {filter_name: True for filter_name in FILTERS.keys()}
-
+    BINDINGS = [
+        Binding(
+            "ctrl+enter",
+            "search_via_event",
+            description="Search",
+        ),
+    ]
     abstract_consent: bool = False
     has_searched: bool = False
 
@@ -465,7 +478,7 @@ class DocSearchView(Horizontal):
 
     def _on_mount(self):
         # TODO: Should only be when DocSearchView tab is selected.
-        self.query_one(selector="#search-input").focus()
+        
         # TODO: Seems like the reactivity of the markdown widget is not working
         self.watch(
             self.query_one(selector="#chat-response"),
@@ -522,7 +535,7 @@ class DocSearchView(Horizontal):
             self.send_chat_via_worker()
 
     @on(Button.Pressed, selector="#search-button")
-    def handle_search_via_event(self) -> None:
+    def action_search_via_event(self) -> None:
         """Send the request."""
         self.has_searched = True
         self.send_search_via_worker()
