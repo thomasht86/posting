@@ -44,7 +44,8 @@ from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
 from posting.variables import SubstitutionError, get_variables
 from posting.version import VERSION
-from posting.vespa import VespaPage, DocSearchView
+from posting.vespa.applications import VespaPage 
+from posting.vespa.docsearch import DocSearchView
 from posting.widgets.collection.browser import (
     CollectionBrowser,
     CollectionTree,
