@@ -1,5 +1,6 @@
 from textual.widgets import Button
 
+
 class SearchButton(Button, can_focus=False):
     DEFAULT_CSS = """
     SearchButton { 
@@ -17,8 +18,9 @@ class SearchButton(Button, can_focus=False):
         }
     """
 
+
 class FilterButton(Button):
-        DEFAULT_CSS = """
+    DEFAULT_CSS = """
         FilterButton { 
             }
         """

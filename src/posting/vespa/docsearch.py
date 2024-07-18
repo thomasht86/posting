@@ -12,6 +12,7 @@ from textual.reactive import reactive, Reactive
 from textual import work
 from textual.app import ComposeResult, on
 
+
 @dataclass
 class ChatResponse(Message):
     response: str
@@ -187,7 +188,7 @@ class DocSearchView(Horizontal):
 
     def _on_mount(self):
         # TODO: Should only be when DocSearchView tab is selected.
-        
+
         # TODO: Seems like the reactivity of the markdown widget is not working
         self.watch(
             self.query_one(selector="#chat-response"),

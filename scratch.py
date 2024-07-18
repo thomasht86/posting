@@ -13,10 +13,11 @@ Rich can do a pretty *decent* job of rendering markdown.
 [Google](https://www.google.com)
 """
 
-class HyperlinkApp(App):
 
+class HyperlinkApp(App):
     def compose(self) -> ComposeResult:
         yield Markdown(MARKDOWN)
+
 
 # if __name__ == "__main__":
 #     app = HyperlinkApp()

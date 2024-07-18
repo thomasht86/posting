@@ -44,7 +44,7 @@ from posting.types import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
 from posting.variables import SubstitutionError, get_variables
 from posting.version import VERSION
-from posting.vespa.applications import VespaPage 
+from posting.vespa.applications import VespaPage
 from posting.vespa.docsearch import DocSearchView
 from posting.widgets.collection.browser import (
     CollectionBrowser,
@@ -99,22 +99,19 @@ class AppHeader(Horizontal):
     }
     """
 
-    COMPONENT_CLASSES = {
-        "authenticated",
-        "not-authenticated"
-    }
+    COMPONENT_CLASSES = {"authenticated", "not-authenticated"}
 
     auth_status: Reactive[bool] = reactive(False, init=False, recompose=True)
 
     def compose(self) -> ComposeResult:
         settings = SETTINGS.get().heading
         yield Label(f"Posting [dim]{VERSION}[/]", id="app-title")
-        #if settings.show_host:
+        # if settings.show_host:
         #    yield Label(get_user_host_string(), id="app-user-host")
-        #self.set_class(not settings.visible, "hidden")
+        # self.set_class(not settings.visible, "hidden")
         marker = self._get_auth_marker()
         yield Label(marker, id="auth-status")
-    
+
     def _get_auth_marker(self) -> Text:
         if self.auth_status:
             style = self.get_component_rich_style("authenticated")
@@ -122,18 +119,23 @@ class AppHeader(Horizontal):
         else:
             style = self.get_component_rich_style("not-authenticated")
             return Text("Not authenticated ■", style=style)
-    
+
     def update_status_classes(self) -> None:
         self.set_class(self.auth_status, "authenticated", update=True)
-        self.query_one("#auth-status").set_class(not self.auth_status, "not-authenticated", update=True)
+        self.query_one("#auth-status").set_class(
+            not self.auth_status, "not-authenticated", update=True
+        )
 
     def watch_auth_status(self, old_value: bool, new_value: bool) -> None:
-        self.query_one("#auth-status").set_class(new_value, "authenticated", update=True)
-        self.query_one("#auth-status").set_class(not new_value, "not-authenticated", update=True)
+        self.query_one("#auth-status").set_class(
+            new_value, "authenticated", update=True
+        )
+        self.query_one("#auth-status").set_class(
+            not new_value, "not-authenticated", update=True
+        )
         new_text = self._get_auth_marker()
         self.query_one("#auth-status").update(new_text)
 
-        
 
 class AppBody(Vertical):
     """The body of the app."""
@@ -145,9 +147,8 @@ class AppBody(Vertical):
     """
 
 
-
 class MainScreen(Screen[None]):
-    #AUTO_FOCUS = "UrlInput"
+    # AUTO_FOCUS = "UrlInput"
     BINDINGS = [
         Binding("ctrl+j", "send_request", "Send"),
         Binding("ctrl+t", "change_method", "Method"),
@@ -594,7 +595,7 @@ class MainScreen(Screen[None]):
     @property
     def app_body(self) -> AppBody:
         return self.query_one(AppBody)
-    
+
     @property
     def app_header(self) -> AppHeader:
         return self.query_one(AppHeader)

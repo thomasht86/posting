@@ -184,7 +184,7 @@ class VespaPage(Vertical):
             "ring_bell",
             description="Ring Bell",
         ),
-    ] 
+    ]
 
     @dataclass
     class AuthenticatedMessage(Message):
@@ -221,11 +221,19 @@ class VespaPage(Vertical):
         yield Label("Applications:")
         yield ApplicationTable()
         with Horizontal(id="button-row"):
-            yield self.GenerateCollectionButton(label="Generate collection", id="generate_button", variant="success")
-            yield self.GenerateCertButton(label="Generate Cert", id="cert_button", variant="success")
-            yield self.AddTokenButton(label="Add Token", id="token_button", variant="success")
-            yield self.AddEnvButton(label="Add to environment", id="env_button", variant="success")
-            
+            yield self.GenerateCollectionButton(
+                label="Generate collection", id="generate_button", variant="success"
+            )
+            yield self.GenerateCertButton(
+                label="Generate Cert", id="cert_button", variant="success"
+            )
+            yield self.AddTokenButton(
+                label="Add Token", id="token_button", variant="success"
+            )
+            yield self.AddEnvButton(
+                label="Add to environment", id="env_button", variant="success"
+            )
+
         # yield ApplicationTable()
         # yield Markdown("Output:", id="output")
 
