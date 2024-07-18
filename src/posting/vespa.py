@@ -272,10 +272,6 @@ class VespaPage(Vertical):
                         # Read output from the master end of the PTY
                         output = os.read(master, 1024).decode("utf-8")
                         if output:
-                            print(output, end="")
-                            self.query_one("#output", Markdown).update(
-                                markdown=f"Output: {output}"
-                            )
                             sys.stdout.flush()
                         if "Success:" in output:
                             finished = True  # Exit the loop after success message
@@ -298,10 +294,6 @@ class VespaPage(Vertical):
         # Add the output to the Markdown widget
         msg = self.AuthenticatedMessage(authenticated=True)
         posted = self.post_message(msg)
-        self.query_one("#output", Markdown).update(
-            markdown=f"Output: {posted} Msg: {msg}"
-        )
-
 
 @dataclass
 class ChatResponse(Message):
