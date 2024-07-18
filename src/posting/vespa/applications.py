@@ -12,6 +12,8 @@ from textual.binding import Binding
 from rich.text import Text
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 from posting.vespa.buttons import SearchButton, FilterButton
+from vespa.deployment import VespaCloud
+
 from dataclasses import dataclass
 import httpx
 import os
@@ -68,41 +70,43 @@ class AddTokenScreen(ModalScreen):
 
     DEFAULT_CSS = """
     AddTokenScreen {
-    align: center middle;
-    }
+        align: center middle;
+        
 
-    #dialog {
-        grid-size: 2;
-        grid-gutter: 1 2;
-        grid-rows: 1fr 4;
-        padding: 0 1;
-        width: 60;
-        height: 11;
-        border: thick $background 80%;
-        background: $surface;
-    }
+        & #dialog {
+            grid-size: 2;
+            grid-gutter: 1 2;
+            grid-rows: 1fr 4;
+            padding: 0 1;
+            width: 60;
+            height: 11;
+            border: thick $background 80%;
+            background: $surface;
+        }
 
-    #label-token {
-        column-span: 2;
-        height: 1fr;
-        width: 1fr;
-        content-align: center middle;
-    }
+        & #label-token {
+            column-span: 2;
+            height: 1fr;
+            width: 1fr;
+            content-align: center middle;
+        }
 
-    #token {
-        column-span: 2;
-        width: 1fr;
-    }
+        & #input-token {
+            column-span: 2;
+            width: 1fr;
+        }
 
-    Button {
-        width: 100%;
+        & Button {
+            width: 100%;
+        }
     }
     """
+    AUTO_FOCUS = "#input-token"
 
     def compose(self) -> ComposeResult:
         yield Grid(
             Label("Input token from vespa cloud", id="label-token"),
-            Input(placeholder="Token", id="token"),
+            Input(placeholder="Token", id="input-token"),
             Button("Add", variant="primary", id="add-token"),
             Button("Cancel", variant="error", id="cancel"),
             id="dialog",

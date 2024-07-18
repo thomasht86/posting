@@ -17,6 +17,8 @@ dependencies = [
     "python-dotenv==1.0.1",
     "textual-autocomplete>=3.0.0a9",
     "textual[syntax]==0.72.0",
+    "pyvespa>=0.45.0",
+    "vespacli==8.371.16"
 ]
 readme = "README.md"
 requires-python = ">= 3.11"

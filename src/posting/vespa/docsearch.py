@@ -126,6 +126,7 @@ class DocSearchView(Horizontal):
             description="Search",
         ),
     ]
+    # AUTO_FOCUS = "#search-input" does not work
     abstract_consent: bool = False
     has_searched: bool = False
 
