@@ -210,13 +210,13 @@ class DocSearchView(Horizontal):
             ]
         )
 
-    @work(exclusive=True)
+    @work(exclusive=False)
     async def send_chat_via_worker(self) -> None:
         await self.send_chat_request(
             query=self.search_query, filter_string=self.get_filter_string()
         )
 
-    @work(exclusive=True)
+    @work(exclusive=False)
     async def send_search_via_worker(self) -> None:
         await self.send_search_request(
             query=self.search_query, filter_string=self.get_filter_string()
