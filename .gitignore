@@ -15,4 +15,4 @@ wheels/
 
 snapshot_report.html
 
-.env
+*.env
