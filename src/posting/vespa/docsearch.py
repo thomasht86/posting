@@ -126,7 +126,6 @@ class DocSearchView(Horizontal):
             description="Search",
         ),
     ]
-    # AUTO_FOCUS = "#search-input" does not work
     abstract_consent: bool = False
     has_searched: bool = False
 
@@ -188,18 +187,7 @@ class DocSearchView(Horizontal):
                     yield self.AbstractMarkdown(id="chat-response")
 
     def _on_mount(self):
-        # TODO: Should only be when DocSearchView tab is selected.
-
-        # TODO: Seems like the reactivity of the markdown widget is not working
-        self.watch(
-            self.query_one(selector="#chat-response"),
-            "text",
-            self.query_one(selector="#chat-response").watch_text,
-        )
-        # Add binding to self.app
-        # BINDINGS = [Binding("ctrl+enter", "send_request", "Search"),]
-        # for binding in BINDINGS:
-        #     self.app.BINDINGS.append(binding)
+        pass
 
     def get_filter_string(self) -> str:
         # TODO: The filters does not seem to be applied correctly
