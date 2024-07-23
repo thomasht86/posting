@@ -181,7 +181,7 @@ class VespaPage(Vertical):
         }
     }
     """
-    AUTO_FOCUS = "tenant_input"
+    AUTO_FOCUS = "#tenant_input"
     BINDINGS = [
         Binding(
             "ctrl+l",

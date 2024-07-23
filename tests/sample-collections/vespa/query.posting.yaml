@@ -1,0 +1,40 @@
+name: query
+description: Query vespa app
+method: GET
+url: https://aa3dc73a.fcc47260.z.vespa-app.cloud/search/
+params:
+- name: query
+  value: "what is dad bod?"
+- name: timeout
+  value: "5s"
+- name: yql
+  value: "select title, url, id from msmarco where userQuery()"
+- name: hits
+  value: "10"
+headers:
+- name: Authorization
+  value: Bearer $TOKEN
+- name: User-Agent
+  value: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:127.0) Gecko/20100101 Firefox/127.0
+- name: Accept
+  value: "*/*"
+- name: Accept-Language
+  value: en-US,en;q=0.5
+- name: Accept-Encoding
+  value: application/json
+- name: Referer
+  value: https://search.vespa.ai/
+- name: Origin
+  value: https://search.vespa.ai
+- name: Connection
+  value: keep-alive
+- name: Sec-Fetch-Dest
+  value: empty
+- name: Sec-Fetch-Mode
+  value: cors
+- name: Sec-Fetch-Site
+  value: same-site
+- name: Priority
+  value: u=1
+- name: TE
+  value: trailers
