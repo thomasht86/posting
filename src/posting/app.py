@@ -105,12 +105,12 @@ class AppHeader(Horizontal):
 
     def compose(self) -> ComposeResult:
         settings = SETTINGS.get().heading
-        yield Label(f"Posting [dim]{VERSION}[/]", id="app-title")
-        # if settings.show_host:
-        #    yield Label(get_user_host_string(), id="app-user-host")
-        # self.set_class(not settings.visible, "hidden")
-        marker = self._get_auth_marker()
-        yield Label(marker, id="auth-status")
+        if settings.show_version:
+            yield Label(f"Posting [dim]{VERSION}[/]", id="app-title")
+        else:
+            yield Label("Posting", id="app-title")
+        if settings.show_host:
+            yield Label(get_user_host_string(), id="app-user-host")
 
     def _get_auth_marker(self) -> Text:
         if self.auth_status:
@@ -148,7 +148,7 @@ class AppBody(Vertical):
 
 
 class MainScreen(Screen[None]):
-    # AUTO_FOCUS = "UrlInput"
+    AUTO_FOCUS = None
     BINDINGS = [
         Binding("ctrl+j", "send_request", "Send"),
         Binding("ctrl+t", "change_method", "Method"),
@@ -339,7 +339,7 @@ class MainScreen(Screen[None]):
         self, event: CollectionTree.RequestCacheUpdated
     ) -> None:
         """Update the autocomplete suggestions when the request cache is updated."""
-        self.url_bar.cached_base_urls = event.cached_base_urls
+        self.url_bar.cached_base_urls = sorted(event.cached_base_urls)
 
     async def action_send_request(self) -> None:
         """Send the request."""
@@ -519,6 +519,7 @@ class MainScreen(Screen[None]):
             params=self.params_table.to_model(),
             headers=headers,
             options=request_options,
+            auth=self.request_auth.to_model(),
             cookies=(
                 Cookie.from_httpx(self.cookies)
                 if request_options.attach_cookies
@@ -646,11 +647,6 @@ class PostingApp(App[None]):
 
 
 class Posting(PostingApp):
-    # TODO - working around a Textual bug where the command palette
-    # doesnt auto focus the input by itself. When that bug is fixed,
-    # the AUTO_FOCUS setting should be set to None!!
-    # https://github.com/Textualize/textual/pull/4763
-    AUTO_FOCUS = "CommandInput"
     COMMANDS = {PostingProvider}
     CSS_PATH = Path(__file__).parent / "posting.scss"
     BINDINGS = [
@@ -894,9 +890,6 @@ class Posting(PostingApp):
         focused_before = self.focused
         if focused_before is not None:
             self.set_focus(None, scroll_visible=False)
-            # TODO - the call below is working around a Textual bug
-            # that is fixed in https://github.com/Textualize/textual/pull/4771
-            self.screen._update_focus_styles(None, blurred=focused_before)
 
         def handle_jump_target(target: str | Widget | None) -> None:
             if isinstance(target, str):
