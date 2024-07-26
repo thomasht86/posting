@@ -12,7 +12,7 @@ from pydantic_settings import (
 from textual.types import AnimationLevel
 import yaml
 
-from posting.locations import config_file
+from posting.locations import config_file, theme_directory
 
 from posting.types import PostingLayout
 
@@ -30,7 +30,7 @@ class UrlBarSettings(BaseModel):
     show_value_preview: bool = Field(default=True)
     """If enabled, the variable value bar will be displayed below the URL.
 
-    When your cursor is above a variable, the value will be displayed on 
+    When your cursor is above a variable, the value will be displayed on
     the line below the URL bar."""
 
 
@@ -52,7 +52,7 @@ class FocusSettings(BaseModel):
 
     on_response: Literal["body", "tabs"] | None = Field(default=None)
     """On receiving a response, move focus to the body or the response section (the tabs).
-    
+
     If this value is unset, focus will not shift when a response is received."""
 
 
@@ -76,6 +76,13 @@ class TextInputSettings(BaseModel):
     """If enabled, the cursor will blink in input widgets and text areas."""
 
 
+class CommandPaletteSettings(BaseModel):
+    """Configuration for the command palette."""
+
+    theme_preview: bool = Field(default=False)
+    """If enabled, the command palette will display a preview of the selected theme when the cursor is over it."""
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -89,11 +96,22 @@ class Settings(BaseSettings):
     theme: str = Field(default="posting")
     """The name of the theme to use."""
 
+    theme_directory: Path = Field(default=theme_directory())
+    """The directory containing user themes."""
+
+    load_user_themes: bool = Field(default=True)
+    """If enabled, load user themes from the theme directory, allowing them
+    to be specified in config and selected via the command palette."""
+
+    load_builtin_themes: bool = Field(default=True)
+    """If enabled, load builtin themes, allowing them to be specified
+    in config and selected via the command palette."""
+
     layout: PostingLayout = Field(default="vertical")
     """Layout for the app."""
 
     use_host_environment: bool = Field(default=False)
-    """If enabled, you can use environment variables from the host machine in your requests 
+    """If enabled, you can use environment variables from the host machine in your requests
     using the `${VARIABLE_NAME}` syntax. When disabled, you are restricted to variables
     defined in any `.env` files explicitly supplied via the `--env` option."""
 
@@ -112,15 +130,20 @@ class Settings(BaseSettings):
     url_bar: UrlBarSettings = Field(default_factory=UrlBarSettings)
     """Configuration for the URL bar."""
 
+    command_palette: CommandPaletteSettings = Field(
+        default_factory=CommandPaletteSettings
+    )
+    """Configuration for the command palette."""
+
     pager: str | None = Field(default=os.getenv("PAGER"))
     """The command to use for paging."""
 
     pager_json: str | None = Field(default=None)
     """The command to use for paging JSON.
-    
+
     This will be used when the pager is opened from within a TextArea,
     and the content within that TextArea can be inferred to be JSON.
-    
+
     For example, the editor is set to JSON language, or the response content
     type indicates JSON.
 
@@ -129,6 +152,9 @@ class Settings(BaseSettings):
 
     editor: str | None = Field(default=os.getenv("EDITOR"))
     """The command to use for editing."""
+
+    use_xresources: bool = Field(default=False)
+    """If true, try to use Xresources to create dark and light themes."""
 
     ssl: CertificateSettings = Field(default_factory=CertificateSettings)
     """Configuration for SSL CA bundle and client certificates."""

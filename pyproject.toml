@@ -1,6 +1,6 @@
 [project]
 name = "posting"
-version = "1.8.0"
+version = "1.9.1"
 description = "The modern API client that lives in your terminal."
 authors = [
     { name = "Darren Burns", email = "darrenb900@gmail.com" }
@@ -57,6 +57,7 @@ dev-dependencies = [
     "syrupy>=4.6.1",
     "pytest-xdist>=3.6.1",
     "pytest-cov>=5.0.0",
+    "pytest-textual-snapshot>=1.0.0",
 ]
 
 [tool.hatch.metadata]
