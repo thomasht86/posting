@@ -14,7 +14,7 @@ import yaml
 
 from posting.locations import config_file, theme_directory
 
-from posting.types import PostingLayout
+from posting.postingtypes import PostingLayout
 
 
 class HeadingSettings(BaseModel):

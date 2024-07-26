@@ -11,7 +11,7 @@ from textual.widgets import Button, Footer, Header, Label
 from textual.binding import Binding
 from rich.text import Text
 from pydantic.dataclasses import dataclass as pydantic_dataclass
-from posting.vespa.buttons import SearchButton, FilterButton
+from posting.vespasrc.buttons import SearchButton, FilterButton
 from vespa.deployment import VespaCloud
 
 from dataclasses import dataclass

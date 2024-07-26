@@ -2,7 +2,7 @@ from textual.message import Message
 from pydantic.dataclasses import dataclass as pydantic_dataclass
 from textual.widgets import Input, ContentSwitcher, DataTable, Markdown, Button, Label
 from textual.containers import VerticalScroll, Horizontal, Center, Grid, Vertical
-from posting.vespa.buttons import SearchButton, FilterButton
+from posting.vespasrc.buttons import SearchButton, FilterButton
 from textual.binding import Binding
 import httpx
 from dataclasses import dataclass

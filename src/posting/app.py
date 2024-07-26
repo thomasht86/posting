@@ -43,12 +43,12 @@ from posting.help_screen import HelpScreen
 from posting.jump_overlay import JumpOverlay
 from posting.jumper import Jumper
 from posting.themes import BUILTIN_THEMES, Theme, load_user_themes
-from posting.types import CertTypes, PostingLayout
+from posting.postingtypes import CertTypes, PostingLayout
 from posting.user_host import get_user_host_string
 from posting.variables import SubstitutionError, get_variables
 from posting.version import VERSION
-from posting.vespa.applications import VespaPage
-from posting.vespa.docsearch import DocSearchView
+from posting.vespasrc.applications import VespaPage
+from posting.vespasrc.docsearch import DocSearchView
 from posting.widgets.collection.browser import (
     CollectionBrowser,
     CollectionTree,
